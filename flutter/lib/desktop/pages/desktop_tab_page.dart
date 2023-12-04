@@ -1,13 +1,17 @@
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
+
 import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_setting_page.dart';
 import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
+import 'package:flutter_hbb/models/security_model.dart';
 import 'package:flutter_hbb/models/state_model.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../common/shared_state.dart';
@@ -53,7 +57,34 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
         page: DesktopHomePage(
           key: const ValueKey(kTabLabelHomePage),
         )));
+    // NEW ADDED
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    provider.requirementsCheck();
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      changeConStatus(provider, result);
+    });
   }
+
+  void changeConStatus(SecurityProvider provider, ConnectivityResult result) {
+    if (result == ConnectivityResult.mobile) {
+      provider.network = "Mobile";
+      provider.thirdSecReq = true;
+    } else if (result == ConnectivityResult.wifi) {
+      provider.network = "Wi-Fi";
+    } else if (result == ConnectivityResult.ethernet) {
+      provider.network = "Ethernet";
+      provider.thirdSecReq = true;
+    } else if (result == ConnectivityResult.vpn) {
+      provider.network = "VPN";
+      provider.thirdSecReq = true;
+    } else if (result == ConnectivityResult.other) {
+      provider.network = "Other";
+    } else if (result == ConnectivityResult.none) {
+      provider.network = "None";
+    }
+  }
+
+  ///
 
   @override
   void dispose() {

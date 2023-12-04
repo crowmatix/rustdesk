@@ -17,11 +17,13 @@ import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
 import 'package:flutter_hbb/main.dart';
 import 'package:flutter_hbb/models/desktop_render_texture.dart';
 import 'package:flutter_hbb/models/peer_model.dart';
+import 'package:flutter_hbb/models/security_model.dart';
 import 'package:flutter_hbb/models/state_model.dart';
 import 'package:flutter_hbb/utils/multi_window_manager.dart';
 import 'package:flutter_hbb/utils/platform_channel.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -2025,6 +2027,12 @@ connect(
       "more than one connect type");
 
   if (isDesktop) {
+    //Provider zum Check
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    //Es wird geloggt, wenn Anforderung 4 true
+    if (provider.fourthSecReq) {
+      provider.saveInitalStringList(id);
+    }
     if (desktopType == DesktopType.main) {
       await connectMainDesktop(
         id,

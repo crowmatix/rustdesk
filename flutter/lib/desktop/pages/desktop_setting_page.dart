@@ -12,6 +12,7 @@ import 'package:flutter_hbb/desktop/pages/desktop_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_tab_page.dart';
 import 'package:flutter_hbb/models/desktop_render_texture.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/models/security_model.dart';
 import 'package:flutter_hbb/models/server_model.dart';
 import 'package:flutter_hbb/plugin/manager.dart';
 import 'package:flutter_hbb/plugin/widgets/desktop_settings.dart';
@@ -39,6 +40,9 @@ const Color _accentColor = MyTheme.accent;
 const String _kSettingPageControllerTag = 'settingPageController';
 const String _kSettingPageIndexTag = 'settingPageIndex';
 const int _kPageCount = 6;
+
+final redColor = Color.fromARGB(255, 247, 83, 72);
+final greenColor = Color.fromARGB(255, 128, 240, 113);
 
 class _TabInfo {
   late final String label;
@@ -549,6 +553,7 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final provider = Provider.of<SecurityProvider>(context);
     return DesktopScrollWrapper(
         scrollController: scrollController,
         child: SingleChildScrollView(
@@ -563,6 +568,7 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
                 AbsorbPointer(
                   absorbing: locked,
                   child: Column(children: [
+                    _secMenu(provider),
                     permissions(context),
                     password(context),
                     _Card(title: 'ID', children: [changeId()]),
@@ -572,6 +578,100 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
               ],
             )).marginOnly(bottom: _kListViewBottomMargin));
   }
+
+  ///
+
+  _secMenu(SecurityProvider provider) {
+    final bgColorInverted = invert(Theme.of(context).colorScheme.background);
+
+    List<Widget> suffix = [
+      Text('${translate('OVA Security')}: '),
+      Icon(
+        Icons.security,
+        color: Provider.of<SecurityProvider>(context).overallSecurity
+            ? greenColor
+            : redColor,
+      ).marginSymmetric(vertical: 4.0),
+      SizedBox(width: 10),
+    ];
+
+    return _Card(
+        title: 'Security Anforderungen',
+        title_suffix: suffix,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Divider(color: bgColorInverted, thickness: 0.5),
+              SelectionArea(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${translate('Protokolle')}: '),
+                  Icon(Icons.circle,
+                      color: provider.firstSecReq ? greenColor : redColor),
+                ],
+              )).marginSymmetric(vertical: 4.0),
+              SelectionArea(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${translate('Verschlüsselung')}: '),
+                  Icon(Icons.circle,
+                      color: provider.secondSecReq ? greenColor : redColor),
+                ],
+              )).marginSymmetric(vertical: 4.0),
+              SelectionArea(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${translate('Netzwerk')}: '),
+                  Icon(Icons.circle,
+                      color: provider.thirdSecReq ? greenColor : redColor),
+                ],
+              )).marginSymmetric(vertical: 4.0),
+              SelectionArea(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${translate('Logging')}: '),
+                  Icon(Icons.circle,
+                      color: provider.fourthSecReq ? greenColor : redColor),
+                ],
+              )).marginSymmetric(vertical: 4.0),
+              SelectionArea(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${translate('Inaktivität')}: '),
+                  Icon(Icons.circle,
+                      color: provider.fifthSecReq ? greenColor : redColor),
+                ],
+              )).marginSymmetric(vertical: 4.0),
+              SelectionArea(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${translate('Aufzeichnung')}: '),
+                  Icon(Icons.circle,
+                      color: provider.sixthSecReq ? greenColor : redColor),
+                ],
+              )).marginSymmetric(vertical: 4.0),
+              SelectionArea(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${translate('Updates')}: '),
+                  Icon(Icons.circle,
+                      color: provider.seventhSecReq ? greenColor : redColor),
+                ],
+              )).marginSymmetric(vertical: 4.0),
+            ],
+          ).marginOnly(left: _kContentHMargin)
+        ]);
+  }
+
+  ///
 
   Widget changeId() {
     return ChangeNotifierProvider.value(
@@ -1028,28 +1128,66 @@ class _NetworkState extends State<_Network> with AutomaticKeepAliveClientMixin {
     super.build(context);
     bool enabled = !locked;
     final scrollController = ScrollController();
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
     return DesktopScrollWrapper(
         scrollController: scrollController,
         child: ListView(
-            controller: scrollController,
-            physics: DraggableNeverScrollableScrollPhysics(),
-            children: [
-              _lock(locked, 'Unlock Network Settings', () {
-                locked = false;
-                setState(() => {});
-              }),
-              AbsorbPointer(
-                absorbing: locked,
-                child: Column(children: [
-                  server(enabled),
-                  _Card(title: 'Proxy', children: [
-                    _Button('Socks5 Proxy', changeSocks5Proxy,
-                        enabled: enabled),
-                  ]),
+          controller: scrollController,
+          physics: DraggableNeverScrollableScrollPhysics(),
+          children: [
+            _lock(locked, 'Unlock Network Settings', () {
+              locked = false;
+              setState(() => {});
+            }),
+            AbsorbPointer(
+              absorbing: locked,
+              child: Column(children: [
+                server(enabled),
+                _Card(title: 'Proxy', children: [
+                  _Button('Socks5 Proxy', changeSocks5Proxy, enabled: enabled),
                 ]),
-              ),
-            ]).marginOnly(bottom: _kListViewBottomMargin));
+                _networkInfo(provider),
+              ]),
+            ),
+          ],
+        ).marginOnly(bottom: _kListViewBottomMargin));
   }
+
+  ///
+
+  _networkInfo(SecurityProvider provider) {
+    List<Widget> suffix = [
+      Icon(Icons.circle, color: provider.thirdSecReq ? greenColor : redColor)
+          .marginSymmetric(vertical: 4.0),
+      SizedBox(width: 10.0),
+    ];
+
+    return _Card(
+        title: 'Netzwerk Information',
+        title_suffix: suffix,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectionArea(
+                  child: Text('Netzwerk:').marginSymmetric(vertical: 4.0)),
+              SelectionArea(
+                  child: Text(
+                provider.network,
+                style: TextStyle(
+                    fontSize: 14,
+                    color: provider.thirdSecReq ? greenColor : redColor),
+              ).marginSymmetric(vertical: 4.0)),
+              SelectionArea(
+                  child: Text(
+                          'Es wird die Art der Netzwerkverbindung identifiziert. RustDesk unterscheidet, Mobile (celluar), Ethernet und VPN-Verbindungen gelten generell als sicher. Wi-Fi oder andere Verbindungen gelten generell als unsicher, jedoch können private Wi-Fi-Netzwerke theoretisch auch sicher sein. Optimieren Sie Ihre Einstellungen basierend auf dieser Unterscheidung für eine effiziente und sichere Fernwartung.')
+                      .marginSymmetric(vertical: 4.0)),
+            ],
+          ).marginOnly(left: _kContentHMargin)
+        ]);
+  }
+
+  ///
 
   server(bool enabled) {
     // Simple temp wrapper for PR check
@@ -1082,6 +1220,7 @@ class _NetworkState extends State<_Network> with AutomaticKeepAliveClientMixin {
       ];
 
       submit() async {
+        final provider = Provider.of<SecurityProvider>(context);
         bool result = await setServerConfig(
             controllers,
             errMsgs,
@@ -1096,6 +1235,8 @@ class _NetworkState extends State<_Network> with AutomaticKeepAliveClientMixin {
         } else {
           showToast(translate('Failed'));
         }
+        //provider.isTwoCheck();
+        provider.changedKey(keyController.text);
       }
 
       bool secure = !enabled;
@@ -1341,6 +1482,7 @@ class _Account extends StatefulWidget {
 class _AccountState extends State<_Account> {
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SecurityProvider>(context);
     final scrollController = ScrollController();
     return DesktopScrollWrapper(
         scrollController: scrollController,
@@ -1349,9 +1491,56 @@ class _AccountState extends State<_Account> {
           controller: scrollController,
           children: [
             _Card(title: 'Account', children: [accountAction(), useInfo()]),
+            _loggingInfo(provider),
           ],
         ).marginOnly(bottom: _kListViewBottomMargin));
   }
+
+  ///
+
+  _loggingInfo(SecurityProvider provider) {
+    final bgColorInverted = invert(Theme.of(context).colorScheme.background);
+
+    List<Widget> suffix = [
+      Icon(Icons.circle, color: provider.fourthSecReq ? greenColor : redColor)
+          .marginSymmetric(vertical: 4.0),
+      SizedBox(width: 10.0),
+    ];
+
+    return _Card(
+        title: 'Logging der Sitzungen',
+        title_suffix: suffix,
+        children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Divider(color: bgColorInverted, thickness: 0.5),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('Wollen Sie die Fernwartungsessions loggen?'),
+              Switch(
+                  value: provider.fourthSecReq,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      provider.changeFourthSecReq(newValue!);
+                    });
+                  }).marginSymmetric(vertical: 4.0),
+            ]).marginSymmetric(vertical: 4.0),
+            Text('Logging Daten: ').marginSymmetric(vertical: 4.0),
+          ]).marginOnly(left: _kContentHMargin),
+          FutureBuilder(
+            future: provider.updateSavedListString(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Fehler beim Laden der Daten: ${snapshot.error}');
+              } else {
+                return provider.dataTableToShow;
+              }
+            },
+          )
+        ]);
+  }
+
+  ///
 
   Widget accountAction() {
     return Obx(() => _Button(
@@ -1656,6 +1845,8 @@ Widget _OptionCheckBox(BuildContext context, String label, String key,
         ref.value = readOption;
       }
       update?.call();
+      final provider = Provider.of<SecurityProvider>(context);
+      provider.boxCheck();
     }
   }
 
@@ -2113,3 +2304,13 @@ void changeSocks5Proxy() async {
 }
 
 //#endregion
+
+Color invert(Color color) {
+  final r = 255 - color.red;
+  final g = 255 - color.green;
+  final b = 255 - color.blue;
+
+  return Color.fromARGB((color.opacity * 255).round(), r, g, b);
+}
+  
+///

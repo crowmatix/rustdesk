@@ -105,6 +105,9 @@ dependencies:
       url: https://github.com/21pages/dynamic_layouts.git
       ref: 24cb88413fa5181d949ddacbb30a65d5c459e7d9
   pull_down_button: ^0.9.3
+  connectivity_plus: ^5.0.2
+  password_strength_checker: ^1.2.2
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   icons_launcher: ^2.0.4
